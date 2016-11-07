@@ -4,6 +4,8 @@
 
 #define TAM_X 60
 #define TAM_Y 60
+#define TRUE 1
+#define FALSE 0
 
 char FrameBuffer[TAM_X][TAM_Y];
 
@@ -29,10 +31,11 @@ char GetPixel(int x, int y){
 }
 
 
-void LineDDA(int x1, int y1, int x2, int y2){
+void LineDDA(int x1, int y1, int x2, int y2, short espessura, short tracejada){
 
 	float xi, yi, x, y;
 	int i, s, dx, dy;
+	short status = TRUE;
 
 	dx = x2-x1;
 	dy = y2-y1;
@@ -53,48 +56,73 @@ void LineDDA(int x1, int y1, int x2, int y2){
 	for (i=0; i< s; i++) {
 		x+=xi;
 		y+=yi;
-		PutPixel(round(x),round(y), '*');
+		if(tracejada){
+			if(status){
+				PutPixel(round(x),round(y), '*');
+				if (espessura) {
+					if (x1 == x2) {
+						PutPixel(round(x)+1,round(y), '*');
+					} else {
+						PutPixel(round(x),round(y)+1, '*');
+					}
+				}
+				status = FALSE;
+			} else { 
+				status = TRUE;
+			}
+		} else {
+			PutPixel(round(x),round(y), '*');
+			if (espessura) {
+				if (x1 == x2) {
+					PutPixel(round(x)+1,round(y), '*');
+				} else {
+					PutPixel(round(x),round(y)+1, '*');
+				}
+			}
+
+		}
 	}
 }
 
 /*void bresenham1(int x1, int y1, int x2, int y2){        
-	int slope;
-	int dx, dy, d, x, y;
-	if (x1 > x2){
-		bresenham1(x2, y2, x1, y1);
-		return;
-	}        
-	dx = x2 - x1;
-	dy = y2 - y1;
+  int slope;
+  int dx, dy, d, x, y;
+  if (x1 > x2){
+  bresenham1(x2, y2, x1, y1);
+  return;
+  }        
+  dx = x2 - x1;
+  dy = y2 - y1;
 
-	if (dy < 0){            
-		slope = -1;
-		dy = -dy;
-	} else{            
-		slope = 1;
-	}
-	d = 2 * dy - dx;
-	y = y1;       
-	for (x = x1; x <= x2; x++){
-		PutPixel(x, y, '*');
-		if (d <= 0){
-			d += 2 * dy;
-		} else{
-			d += 2 * dy - 2 * dx;
-			y += slope;
-		}
-	}
-}*/
+  if (dy < 0){            
+  slope = -1;
+  dy = -dy;
+  } else{            
+  slope = 1;
+  }
+  d = 2 * dy - dx;
+  y = y1;       
+  for (x = x1; x <= x2; x++){
+  PutPixel(x, y, '*');
+  if (d <= 0){
+  d += 2 * dy;
+  } else{
+  d += 2 * dy - 2 * dx;
+  y += slope;
+  }
+  }
+  }*/
 
 void swap(int *x, int *y) {
-    int k = *x;
-    *x = *y;
-    *y = k;
+	int k = *x;
+	*x = *y;
+	*y = k;
 }
 
-void bresenham(int x1, int y1, int x2, int y2) {
+void bresenham(int x1, int y1, int x2, int y2, short espessura, short tracejada) {
 	int dx,dy,p,k;
 	float m;
+	short status = TRUE;
 
 	dx = abs(x2-x1);
 	dy = abs(y2-y1);
@@ -124,39 +152,63 @@ void bresenham(int x1, int y1, int x2, int y2) {
 
 			p = p + (2 * dy) - (2 * dx);
 		}
-		
+
 		x1++;
-		if(fabs(m) <= 1) {
-			PutPixel(x1, y1, '*');
-		}
-		else {
-			PutPixel(y1, x1, '*');
+		if(tracejada){
+			if(status){
+				if(fabs(m) <= 1) {
+					PutPixel(x1, y1, '*');
+					if(espessura) PutPixel(x1,y1+1,'*');
+				}
+				else {
+					PutPixel(y1, x1, '*');
+					if(espessura) PutPixel(y1, x1+1, '*');
+				}
+				status = FALSE;
+			} else {
+				status = TRUE;
+			}
+		} else {
+			if(fabs(m) <= 1) {
+					PutPixel(x1, y1, '*');
+					if(espessura) PutPixel(x1,y1+1,'*');
+				}
+				else {
+					PutPixel(y1, x1, '*');
+					if(espessura) PutPixel(y1, x1+1, '*');
+				}
 		}
 	}
 }
 
-void PolyLine(Ponto vert[], int tam){
+void PolyLine(Ponto vert[], int tam, short espessura, short tracejada){
 	int i;
 	for(i = 0; i < tam-1; i++){
 		if(vert[i].a == vert[i+1].a)
-			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b);
+			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
+					espessura, tracejada);
 		else 
-			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b);
+			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
+					espessura,tracejada);
 	}
 }
 
-void Polygon(Ponto vert[], int tam){
+void Polygon(Ponto vert[], int tam, short espessura, short tracejada){
 	int i;
 	for(i = 0; i < tam-1; i++){
 		if(vert[i].a == vert[i+1].a)
-			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b);
+			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
+					espessura, tracejada);
 		else 
-			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b);
+			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b, 
+					espessura, tracejada);
 	}
 	if(vert[i].a == vert[0].a)
-		LineDDA(vert[i].a,vert[i].b, vert[0].a, vert[0].b);
+		LineDDA(vert[i].a,vert[i].b, vert[0].a, vert[0].b,
+				espessura, tracejada);
 	else 
-		bresenham(vert[i].a,vert[i].b, vert[0].a, vert[0].b);
+		bresenham(vert[i].a,vert[i].b, vert[0].a, vert[0].b, 
+				espessura, tracejada);
 }
 
 //TODO DONE
@@ -181,7 +233,7 @@ int main(){
 	vert[4].a = 30; vert[4].b = 50;
 	vert[3].a = 50; vert[3].b = 50;
 	clearBuffer();
-	Polygon(vert,5);
+	Polygon(vert,5,TRUE,FALSE);
 	printBuffer();
 	/*clearBuffer();
 	  printf("tentando separado\n\n");
