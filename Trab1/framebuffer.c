@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define TAM_X 60
-#define TAM_Y 60
+#define TAM_X 80
+#define TAM_Y 80
 #define TRUE 1
 #define FALSE 0
 
@@ -170,13 +170,13 @@ void bresenham(int x1, int y1, int x2, int y2, short espessura, short tracejada)
 			}
 		} else {
 			if(fabs(m) <= 1) {
-					PutPixel(x1, y1, '*');
-					if(espessura) PutPixel(x1,y1+1,'*');
-				}
-				else {
-					PutPixel(y1, x1, '*');
-					if(espessura) PutPixel(y1, x1+1, '*');
-				}
+				PutPixel(x1, y1, '*');
+				if(espessura) PutPixel(x1,y1+1,'*');
+			}
+			else {
+				PutPixel(y1, x1, '*');
+				if(espessura) PutPixel(y1, x1+1, '*');
+			}
 		}
 	}
 }
@@ -225,6 +225,58 @@ void printBuffer(){
 	}
 }
 
+void ddacircle(int x,int y,int r){
+	float x1,x2,y1,y2,eps,sx,sy;
+	int val,i;
+	x1=r;
+	y1=0;
+	sx=x1;
+	sy=y1;
+	i=0;
+	do{
+		val=pow(2,i);
+		i++;
+	}while(val<r);
+	eps = 1/pow(2,i-1);
+	do{
+		x2 = x1 + y1*eps;
+		y2 = y1 - eps*x2;
+		PutPixel(x+x2,y-y2,'*');
+		x1=x2;
+		y1=y2;
+	}while((y1-sy)<eps || (sx-x1)>eps);
+}
+
+void plotPoints(int cx, int cy, int x, int y)
+{
+	PutPixel(cx+x, cy+y, '*');
+	PutPixel(cx-x, cy+y, '*');
+	PutPixel(cx+x, cy-y, '*');
+	PutPixel(cx-x, cy-y, '*');
+	PutPixel(cx+y, cy+x, '*');
+	PutPixel(cx-y, cy+x, '*');
+	PutPixel(cx+y, cy-x, '*');
+	PutPixel(cx-y, cy-x, '*');
+}
+
+void bresenhamCircle(int cx,int cy,int r){
+	int x = 0, y, p;
+	y = r;
+	p = 3 - 2 * r;
+
+	while (x < y) {
+		plotPoints(cx,cy,x,y);
+		x++;
+		if (p < 0) {
+			p = p + 4 * x + 6;
+		} else {
+			y--;
+			p = p + 4 * (x - y) + 10;
+		}
+		plotPoints(cx,cy,x,y);
+	}
+}
+
 int main(){
 	Ponto vert[4];
 	vert[0].a = 10; vert[0].b = 30;
@@ -233,7 +285,8 @@ int main(){
 	vert[4].a = 30; vert[4].b = 50;
 	vert[3].a = 50; vert[3].b = 50;
 	clearBuffer();
-	Polygon(vert,5,TRUE,FALSE);
+	//Polygon(vert,5,TRUE,FALSE);
+	bresenhamCircle(50,50,10);
 	printBuffer();
 	/*clearBuffer();
 	  printf("tentando separado\n\n");

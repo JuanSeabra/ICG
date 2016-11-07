@@ -10,9 +10,9 @@ all: framebuffer
 framebuffer: framebuffer.o
 	$(CC) $(CFLAGS) -o $@ $+
 
-clean:
+clean: mrproper
 	rm -f *.o core.*
 
-mrproper: clean
+mrproper: 
 	rm -f framebuffer
 
