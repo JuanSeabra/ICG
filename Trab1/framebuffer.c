@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
-#define TAM_X 80
-#define TAM_Y 80
+#define TAM_X 70
+#define TAM_Y 60
 #define TRUE 1
 #define FALSE 0
 
@@ -67,7 +68,7 @@ void LineDDA(int x1, int y1, int x2, int y2, short espessura, short tracejada){
 					}
 				}
 				status = FALSE;
-			} else { 
+			} else {
 				status = TRUE;
 			}
 		} else {
@@ -83,35 +84,6 @@ void LineDDA(int x1, int y1, int x2, int y2, short espessura, short tracejada){
 		}
 	}
 }
-
-/*void bresenham1(int x1, int y1, int x2, int y2){        
-  int slope;
-  int dx, dy, d, x, y;
-  if (x1 > x2){
-  bresenham1(x2, y2, x1, y1);
-  return;
-  }        
-  dx = x2 - x1;
-  dy = y2 - y1;
-
-  if (dy < 0){            
-  slope = -1;
-  dy = -dy;
-  } else{            
-  slope = 1;
-  }
-  d = 2 * dy - dx;
-  y = y1;       
-  for (x = x1; x <= x2; x++){
-  PutPixel(x, y, '*');
-  if (d <= 0){
-  d += 2 * dy;
-  } else{
-  d += 2 * dy - 2 * dx;
-  y += slope;
-  }
-  }
-  }*/
 
 void swap(int *x, int *y) {
 	int k = *x;
@@ -187,7 +159,7 @@ void PolyLine(Ponto vert[], int tam, short espessura, short tracejada){
 		if(vert[i].a == vert[i+1].a)
 			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
 					espessura, tracejada);
-		else 
+		else
 			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
 					espessura,tracejada);
 	}
@@ -199,15 +171,15 @@ void Polygon(Ponto vert[], int tam, short espessura, short tracejada){
 		if(vert[i].a == vert[i+1].a)
 			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
 					espessura, tracejada);
-		else 
-			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b, 
+		else
+			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
 					espessura, tracejada);
 	}
 	if(vert[i].a == vert[0].a)
 		LineDDA(vert[i].a,vert[i].b, vert[0].a, vert[0].b,
 				espessura, tracejada);
-	else 
-		bresenham(vert[i].a,vert[i].b, vert[0].a, vert[0].b, 
+	else
+		bresenham(vert[i].a,vert[i].b, vert[0].a, vert[0].b,
 				espessura, tracejada);
 }
 
@@ -245,6 +217,7 @@ void ddacircle(int x,int y,int r){
 		x1=x2;
 		y1=y2;
 	}while((y1-sy)<eps || (sx-x1)>eps);
+
 }
 
 void plotPoints(int cx, int cy, int x, int y)
@@ -277,6 +250,63 @@ void bresenhamCircle(int cx,int cy,int r){
 	}
 }
 
+float calculaErro(Ponto vert1, Ponto vert2){
+	float a, b, erro = 0.0, yReal, erroMedio;
+	int i, j, npontos = 0;
+	if(vert1.a == vert2.a || vert1.b == vert2.b){
+		return 0.0;
+	}
+	a = (vert2.b - vert1.b)/(vert2.a - vert1.a);
+	b = (vert2.b)-(a*vert2.a);
+
+	for (i = 0; i < TAM_X; i++) {
+		for (j = 0; j < TAM_Y; j++) {
+			if (FrameBuffer[i][j] == '*') {
+				yReal = a*i + b;
+				erro += fabs(yReal - j);
+				npontos++;
+				//printf("%f\n", erro );
+			}
+		}
+	}
+
+	erroMedio = erro/npontos;
+	return erroMedio;
+}
+
+void erroMedio(int n){
+	int i;
+	Ponto vert1, vert2;
+	float erroRetasDDA = 0.0, erroTotalDAA, erroRetasBres = 0.0, erroTotalBres;
+	srand(time(NULL));
+	for (i = 0; i < n; i++){
+		vert1.a = rand()%TAM_X;
+		vert1.b = rand()%TAM_Y;
+		//printf("1 par: (%d,%d)\n", vert1.a, vert1.b );
+
+		vert2.a = rand()%TAM_X;
+		vert2.b = rand()%TAM_Y;
+		//printf("2 par: (%d,%d)\n", vert2.a, vert2.b );
+
+		LineDDA(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
+		erroRetasDDA += calculaErro(vert1,vert2);
+		//printBuffer();
+		//printf("%f\n", erroRetasDDA );
+		clearBuffer();
+
+		bresenham(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
+		erroRetasBres += calculaErro(vert1, vert2);
+		//printBuffer();
+		//printf("%f\n", erroRetasBres );
+		clearBuffer();
+	}
+	erroTotalDAA = erroRetasDDA/n;
+	erroTotalBres = erroRetasBres/n;
+
+	printf("Erro medio DDA: %.5f\n", erroTotalDAA );
+	printf("Erro medio Bresenham: %.5f\n", erroTotalBres );
+}
+
 int main(){
 	Ponto vert[4];
 	vert[0].a = 10; vert[0].b = 30;
@@ -286,8 +316,10 @@ int main(){
 	vert[3].a = 50; vert[3].b = 50;
 	clearBuffer();
 	//Polygon(vert,5,TRUE,FALSE);
-	bresenhamCircle(50,50,10);
-	printBuffer();
+	//bresenhamCircle(50,50,10);
+	//printBuffer();
+	//clearBuffer();
+	erroMedio(3);
 	/*clearBuffer();
 	  printf("tentando separado\n\n");
 	  bresenham1(10,0,10,30);
