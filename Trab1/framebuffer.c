@@ -31,6 +31,72 @@ char GetPixel(int x, int y){
 	return FrameBuffer[x][y];
 }
 
+void LinhaReta(int x1, int y1, int y2, short espessura, short tracejada){
+	int i;
+	short status = TRUE;
+	for (i = y1; i < y2; i++){
+		if(tracejada){
+			if(status){
+				if(espessura){
+					PutPixel(x1,i,'*');
+					PutPixel(x1+1,i,'*');
+				} else {
+					PutPixel(x1,i,'*');
+				}
+				status = FALSE;
+			} else{
+				status = TRUE;
+			}
+		} else {
+			if(espessura){
+				PutPixel(x1,i,'*');
+				PutPixel(x1+1,i,'*');
+			} else {
+				PutPixel(x1,i,'*');
+			}
+		}
+	}
+}
+
+void LineDDAburro(int x1, int y1, int x2, int y2, short espessura, short tracejada){
+	float y;
+	short status = FALSE;
+	if (x1 == x2) {
+		LinhaReta(x1, y1, y2, espessura, tracejada);
+		return;
+	}
+	float m = (y2-y1)/(x2-x1);
+	int x;
+	if(espessura){
+		PutPixel(x1,y1, '*');
+		PutPixel(x1+1,y1,'*');
+	} else
+		PutPixel(x1,y1, '*');
+	y = y1;
+	for (x=x1+1; x<=x2; x++) {
+		y = y+m;
+		if(tracejada){
+			if(status) {
+				if(espessura){
+					PutPixel(x,round(y), '*');
+					PutPixel(x+1,round(y), '*');
+				} else {
+					PutPixel(x,round(y), '*');
+				}
+				status = FALSE;
+			} else {
+				status = TRUE;
+			}
+		} else {
+			if(espessura){
+				PutPixel(x,round(y), '*');
+				PutPixel(x+1,round(y), '*');
+			} else {
+				PutPixel(x,round(y), '*');
+			}
+		}
+	}
+}
 
 void LineDDA(int x1, int y1, int x2, int y2, short espessura, short tracejada){
 
@@ -113,6 +179,7 @@ void bresenham(int x1, int y1, int x2, int y2, short espessura, short tracejada)
 
 	p = 2*dy - dx;
 
+
 	for (k = 0; k < abs(dx); k++) {
 		if (p < 0) {
 			p += 2*dy;
@@ -156,31 +223,19 @@ void bresenham(int x1, int y1, int x2, int y2, short espessura, short tracejada)
 void PolyLine(Ponto vert[], int tam, short espessura, short tracejada){
 	int i;
 	for(i = 0; i < tam-1; i++){
-		if(vert[i].a == vert[i+1].a)
-			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
-					espessura, tracejada);
-		else
-			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
-					espessura,tracejada);
+		bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
+				espessura,tracejada);
 	}
 }
 
 void Polygon(Ponto vert[], int tam, short espessura, short tracejada){
 	int i;
 	for(i = 0; i < tam-1; i++){
-		if(vert[i].a == vert[i+1].a)
-			LineDDA(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
-					espessura, tracejada);
-		else
-			bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
-					espessura, tracejada);
+		bresenham(vert[i].a,vert[i].b, vert[i+1].a, vert[i+1].b,
+				espessura, tracejada);
 	}
-	if(vert[i].a == vert[0].a)
-		LineDDA(vert[i].a,vert[i].b, vert[0].a, vert[0].b,
-				espessura, tracejada);
-	else
-		bresenham(vert[i].a,vert[i].b, vert[0].a, vert[0].b,
-				espessura, tracejada);
+	bresenham(vert[i].a,vert[i].b, vert[0].a, vert[0].b,
+			espessura, tracejada);
 }
 
 //TODO DONE
@@ -217,7 +272,6 @@ void ddacircle(int x,int y,int r){
 		x1=x2;
 		y1=y2;
 	}while((y1-sy)<eps || (sx-x1)>eps);
-
 }
 
 void plotPoints(int cx, int cy, int x, int y)
@@ -265,7 +319,7 @@ float calculaErro(Ponto vert1, Ponto vert2){
 				yReal = a*i + b;
 				erro += fabs(yReal - j);
 				npontos++;
-				//printf("%f\n", erro );
+				printf("%f\n", erro );
 			}
 		}
 	}
@@ -282,13 +336,13 @@ void erroMedio(int n){
 	for (i = 0; i < n; i++){
 		vert1.a = rand()%TAM_X;
 		vert1.b = rand()%TAM_Y;
-		//printf("1 par: (%d,%d)\n", vert1.a, vert1.b );
+		printf("1 par: (%d,%d)\n", vert1.a, vert1.b );
 
 		vert2.a = rand()%TAM_X;
 		vert2.b = rand()%TAM_Y;
-		//printf("2 par: (%d,%d)\n", vert2.a, vert2.b );
+		printf("2 par: (%d,%d)\n", vert2.a, vert2.b );
 
-		LineDDA(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
+		LineDDAburro(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
 		erroRetasDDA += calculaErro(vert1,vert2);
 		//printBuffer();
 		//printf("%f\n", erroRetasDDA );
@@ -297,7 +351,7 @@ void erroMedio(int n){
 		bresenham(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
 		erroRetasBres += calculaErro(vert1, vert2);
 		//printBuffer();
-		//printf("%f\n", erroRetasBres );
+		printf("%f\n", erroRetasBres );
 		clearBuffer();
 	}
 	erroTotalDAA = erroRetasDDA/n;
@@ -315,16 +369,21 @@ int main(){
 	vert[4].a = 30; vert[4].b = 50;
 	vert[3].a = 50; vert[3].b = 50;
 	clearBuffer();
+	//LinhaReta(4, 10, 40);
+	//LineDDAburro(10, 5, 25, 50,FALSE,FALSE);
+	//LineDDA(10, 5, 25, 50,FALSE,FALSE);
+	//printBuffer();
 	//Polygon(vert,5,TRUE,FALSE);
 	//bresenhamCircle(50,50,10);
 	//printBuffer();
 	//clearBuffer();
-	erroMedio(3);
-	/*clearBuffer();
-	  printf("tentando separado\n\n");
-	  bresenham1(10,0,10,30);
+	erroMedio(10);
+	//clearBuffer();
+	  //printf("tentando separado\n\n");
+	  bresenham(10,0,10,30,FALSE,FALSE);
+
+	  //printBuffer();
+	  //printf("tentando com DDA\n\n");
+	  //LineDDA(10,0,10,30);
 	  printBuffer();
-	  printf("tentando com DDA\n\n");
-	  LineDDA(10,0,10,30);
-	  printBuffer();*/
 }
