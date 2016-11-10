@@ -98,59 +98,6 @@ void LineDDA1(int x1, int y1, int x2, int y2, short espessura, short tracejada){
 	}
 }
 
-void LineDDA(int x1, int y1, int x2, int y2, short espessura, short tracejada){
-
-	float xi, yi, x, y;
-	int i, s, dx, dy;
-	short status = TRUE;
-
-	dx = x2-x1;
-	dy = y2-y1;
-
-	if(abs(dx)>abs(dy)) {
-		s = abs(dx);
-	}
-	else s = abs(dy);
-
-	xi = dx/ (float) s;
-	yi = dy/ (float) s;
-
-	x = x1;
-	y = y1;
-
-	PutPixel(x1,y1, '*');
-
-	for (i=0; i< s; i++) {
-		x+=xi;
-		y+=yi;
-		if(tracejada){
-			if(status){
-				PutPixel(round(x),round(y), '*');
-				if (espessura) {
-					if (x1 == x2) {
-						PutPixel(round(x)+1,round(y), '*');
-					} else {
-						PutPixel(round(x),round(y)+1, '*');
-					}
-				}
-				status = FALSE;
-			} else {
-				status = TRUE;
-			}
-		} else {
-			PutPixel(round(x),round(y), '*');
-			if (espessura) {
-				if (x1 == x2) {
-					PutPixel(round(x)+1,round(y), '*');
-				} else {
-					PutPixel(round(x),round(y)+1, '*');
-				}
-			}
-
-		}
-	}
-}
-
 void swap(int *x, int *y) {
 	int k = *x;
 	*x = *y;
@@ -366,28 +313,6 @@ void erroMedio(int n){
 }
 
 int main(){
-	Ponto vert[4];
-	vert[0].a = 10; vert[0].b = 30;
-	vert[1].a = 30; vert[1].b = 10;
-	vert[2].a = 50; vert[2].b = 10;
-	vert[4].a = 30; vert[4].b = 50;
-	vert[3].a = 50; vert[3].b = 50;
 	clearBuffer();
-	//LinhaReta(4, 10, 40);
-	//LineDDAburro(10, 5, 25, 50,FALSE,FALSE);
-	//LineDDA(10, 5, 25, 50,FALSE,FALSE);
-	//printBuffer();
-	//Polygon(vert,5,TRUE,FALSE);
-	//bresenhamCircle(50,50,10);
-	//printBuffer();
-	//clearBuffer();
 	erroMedio(10);
-	//clearBuffer();
-	  //printf("tentando separado\n\n");
-	 // LineDDA1(0,0,12,30,FALSE,FALSE);
-
-	  //printBuffer();
-	  //printf("tentando com DDA\n\n");
-	  //LineDDA(10,0,10,30);
-	  //printBuffer();
 }
