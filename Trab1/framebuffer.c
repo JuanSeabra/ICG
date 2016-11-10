@@ -58,7 +58,7 @@ void LinhaReta(int x1, int y1, int y2, short espessura, short tracejada){
 	}
 }
 
-void LineDDAburro(int x1, int y1, int x2, int y2, short espessura, short tracejada){
+void LineDDA1(int x1, int y1, int x2, int y2, short espessura, short tracejada){
 	float y;
 	short status = FALSE;
 	if (x1 == x2) {
@@ -161,6 +161,10 @@ void bresenham(int x1, int y1, int x2, int y2, short espessura, short tracejada)
 	int dx,dy,p,k;
 	float m;
 	short status = TRUE;
+	if (x1 == x2) {
+		LinhaReta(x1, y1, y2, espessura, tracejada);
+		return;
+	}
 
 	dx = abs(x2-x1);
 	dy = abs(y2-y1);
@@ -319,7 +323,7 @@ float calculaErro(Ponto vert1, Ponto vert2){
 				yReal = a*i + b;
 				erro += fabs(yReal - j);
 				npontos++;
-				printf("%f\n", erro );
+				//printf("%f\n", erro );
 			}
 		}
 	}
@@ -336,13 +340,13 @@ void erroMedio(int n){
 	for (i = 0; i < n; i++){
 		vert1.a = rand()%TAM_X;
 		vert1.b = rand()%TAM_Y;
-		printf("1 par: (%d,%d)\n", vert1.a, vert1.b );
+		//printf("1 par: (%d,%d)\n", vert1.a, vert1.b );
 
 		vert2.a = rand()%TAM_X;
 		vert2.b = rand()%TAM_Y;
-		printf("2 par: (%d,%d)\n", vert2.a, vert2.b );
+		//printf("2 par: (%d,%d)\n", vert2.a, vert2.b );
 
-		LineDDAburro(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
+		LineDDA1(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
 		erroRetasDDA += calculaErro(vert1,vert2);
 		//printBuffer();
 		//printf("%f\n", erroRetasDDA );
@@ -351,7 +355,7 @@ void erroMedio(int n){
 		bresenham(vert1.a, vert1.b, vert2.a, vert2.b, FALSE, FALSE);
 		erroRetasBres += calculaErro(vert1, vert2);
 		//printBuffer();
-		printf("%f\n", erroRetasBres );
+		//printf("%f\n", erroRetasBres );
 		clearBuffer();
 	}
 	erroTotalDAA = erroRetasDDA/n;
@@ -380,10 +384,10 @@ int main(){
 	erroMedio(10);
 	//clearBuffer();
 	  //printf("tentando separado\n\n");
-	  bresenham(10,0,10,30,FALSE,FALSE);
+	 // LineDDA1(0,0,12,30,FALSE,FALSE);
 
 	  //printBuffer();
 	  //printf("tentando com DDA\n\n");
 	  //LineDDA(10,0,10,30);
-	  printBuffer();
+	  //printBuffer();
 }
